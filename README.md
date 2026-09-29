@@ -49,10 +49,12 @@
 
 示例：
 ```
-koa:sess=xxxxxx; koa:sess.sig=yyyyyy
+gld:sess=xxxxxx; gld:sess.sig=yyyyyy
 ```
 
 ⚠️ **必须是完整的一整段**
+
+⚠️ **会话 Cookie 名以你浏览器里实际看到的为准**：站点于 2026-09-25 前后把会话 Cookie 由 `koa:sess` / `koa:sess.sig` 更名为 `gld:sess` / `gld:sess.sig`。脚本同时兼容两种命名，但**必须与站点当前下发的一致**——用旧名发送会得到 `{"code":-2,"message":"没有权限"}`。
 
 ---
 
@@ -146,7 +148,7 @@ cookie_账号3
 
 **Q: 签到提示 Cookie 失效？**
 
-A: Cookie 有有效期，请重新登录获取最新 Cookie 并更新 Secrets。
+A: 先确认两件事。其一，Cookie 有有效期，请重新登录获取最新 Cookie 并更新 Secrets。其二，站点已于 2026-09-25 前后把会话 Cookie 由 `koa:sess` / `koa:sess.sig` 更名为 `gld:sess` / `gld:sess.sig`，请核对浏览器中实际的 Cookie 名。若日志出现 `没有权限`，通常是发出的 Cookie 名与服务端不一致（服务端只认 `gld:sess`），而非 Cookie 本身失效。
 
 **Q: Actions 被暂停了？**
 
@@ -197,6 +199,16 @@ A: 可以，配置多个 Secrets 即可同时推送。
 
 **功能新增**
 - 新增积分自动兑换功能（#9，可选配置 `EXCHANGE_PLAN` / `GLADOS_EXCHANGE_PLAN`，支持 plan100/plan200/plan500 三档策略；默认关闭，不影响现有签到）
+
+---
+
+### v2.1.1
+
+**问题修复**
+- 适配站点会话 Cookie 更名：由 `koa:sess` / `koa:sess.sig` 改为 `gld:sess` / `gld:sess.sig`（站点约于 2026-09-25 变更）。`validate_cookie()` 现同时接受新旧两种命名，避免新版 Cookie 被误判为"无效Cookie"而跳过签到；用旧名发送时服务端会返回 `{"code":-2,"message":"没有权限"}`
+
+**文档**
+- 同步更新 Cookie 获取示例与 FAQ
 
 ---
 

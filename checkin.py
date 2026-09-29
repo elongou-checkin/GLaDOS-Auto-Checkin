@@ -168,16 +168,24 @@ def parse_earned_points(message: str) -> int:
     return int(m.group(1)) if m else 0
 
 
+# 会话 Cookie 名兼容列表。
+# 站点于 2026-09-25 前后把会话 Cookie 由 koa:sess / koa:sess.sig 更名为
+# gld:sess / gld:sess.sig；服务端只认新名，旧名会返回 {"code":-2,"message":"没有权限"}。
+# 此处同时接受新旧两种命名，避免改版期间被误判为"无效Cookie"而跳过签到。
+SESSION_KEY_CANDIDATES = ("koa:sess", "gld:sess")
+SESSION_SIG_CANDIDATES = ("koa:sess.sig", "gld:sess.sig")
+
+
 def validate_cookie(cookie: str) -> Tuple[bool, str]:
     """验证 Cookie 是否包含必要字段（按 ; 拆分 key 精确校验，避免子串误判）"""
     if not cookie or not cookie.strip():
         return False, "Cookie 为空"
     cookie = cookie.strip()
     keys = {part.split("=", 1)[0].strip() for part in cookie.split(";") if part.strip()}
-    if "koa:sess" not in keys:
-        return False, "Cookie 缺少必要字段: koa:sess"
-    if "koa:sess.sig" not in keys:
-        return False, "Cookie 缺少必要字段: koa:sess.sig"
+    if not any(k in keys for k in SESSION_KEY_CANDIDATES):
+        return False, "Cookie 缺少必要字段: koa:sess / gld:sess"
+    if not any(k in keys for k in SESSION_SIG_CANDIDATES):
+        return False, "Cookie 缺少必要字段: koa:sess.sig / gld:sess.sig"
     return True, ""
 
 
